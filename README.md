@@ -39,7 +39,7 @@ def welcome():
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
           font-family: 'Poppins', sans-serif;
-          background: linear-gradient(135deg, #0A2E1F, #1A472F);  /* Changed to dark green gradient */
+          background: linear-gradient(135deg, #003366, #66B2FF);  /* تدرج من الأزرق الداكن إلى الأزرق الفاتح */
           display: flex;
           justify-content: center;
           align-items: center;
@@ -47,7 +47,7 @@ def welcome():
           color: #fff;
         }
         .container {
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.1);  /* خلفية بيضاء شفافة */
           border-radius: 15px;
           padding: 40px 30px;
           box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -72,7 +72,7 @@ def welcome():
         button {
           width: 100%;
           padding: 12px;
-          background-color: #ff6f61;
+          background-color: #003366;  /* أزرق داكن */
           border: none;
           border-radius: 8px;
           color: #fff;
@@ -80,9 +80,11 @@ def welcome():
           cursor: pointer;
           transition: background-color 0.3s;
         }
-        button:hover { background-color: #ff8a75; }
+        button:hover { 
+          background-color: #00509E;  /* أزرق أفتح عند التحويم */
+        }
         p { margin-top: 15px; }
-        a { color: #ffcccb; text-decoration: none; }
+        a { color: #66B2FF; text-decoration: none; }  /* أزرق فاتح */
         a:hover { text-decoration: underline; }
       </style>
       {% endraw %}
@@ -146,11 +148,13 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
+        username = request.form.get('username')  # إضافة حقل اسم المستخدم
         email = request.form.get('email')
         password = request.form.get('password')
         try:
             user = auth.create_user(email=email, password=password)
             db.collection("users").document(user.uid).set({
+                "username": username,  # تخزين اسم المستخدم
                 "email": email,
                 "password": password,
                 "avatar": ""
@@ -171,12 +175,13 @@ def register():
       <style>
         body {
           font-family: 'Poppins', sans-serif;
-          background: linear-gradient(135deg, #0A2E1F, #1A472F);  /* Changed to dark green gradient */
+          background: linear-gradient(135deg, #003366, #66B2FF);
           display: flex;
           justify-content: center;
           align-items: center;
           height: 100vh;
           color: #fff;
+          direction: rtl;  /* تحويل الاتجاه للعربية */
         }
         .container {
           background: rgba(255, 255, 255, 0.1);
@@ -189,45 +194,76 @@ def register():
           transition: transform 0.3s ease;
         }
         .container:hover { transform: scale(1.02); }
-        h2 { margin-bottom: 20px; font-weight: 500; }
+        h2 { 
+          margin-bottom: 20px; 
+          font-weight: 500;
+          color: #fff;
+        }
+        .input-group {
+          margin-bottom: 15px;
+          text-align: right;
+        }
+        .input-group label {
+          display: block;
+          margin-bottom: 5px;
+          color: #fff;
+          font-size: 0.9em;
+        }
         input {
           width: 100%;
           padding: 12px;
-          margin-bottom: 15px;
           border: none;
           border-radius: 8px;
           background-color: rgba(255,255,255,0.2);
           color: #fff;
           font-size: 1em;
+          transition: background-color 0.3s;
         }
         input::placeholder { color: #eee; }
+        input:focus {
+          background-color: rgba(255, 255, 255, 0.3);
+          outline: none;
+        }
         button {
           width: 100%;
           padding: 12px;
-          background-color: #28a745;
+          background-color: #003366;
           border: none;
           border-radius: 8px;
           color: #fff;
           font-size: 1em;
           cursor: pointer;
           transition: background-color 0.3s;
+          margin-top: 20px;
         }
-        button:hover { background-color: #3ecf8e; }
+        button:hover { 
+          background-color: #00509E;
+        }
         p { margin-top: 15px; }
-        a { color: #ffcccb; text-decoration: none; }
+        a { color: #66B2FF; text-decoration: none; }
         a:hover { text-decoration: underline; }
       </style>
       {% endraw %}
     </head>
     <body>
       <div class="container">
-          <h2><i class="fa-solid fa-user-plus"></i></h2>
+          <h2><i class="fa-solid fa-user-plus"></i> إنشاء حساب جديد</h2>
           <form method="POST" action="/register">
-              <input type="email" name="email" placeholder="البريد الإلكتروني" required>
-              <input type="password" name="password" placeholder="كلمة المرور" required>
-              <button type="submit"><i class="fa-solid fa-check"></i> إنشاء حساب</button>
+              <div class="input-group">
+                  <label>اسم المستخدم</label>
+                  <input type="text" name="username" placeholder="أدخل اسم المستخدم" required>
+              </div>
+              <div class="input-group">
+                  <label>البريد الإلكتروني</label>
+                  <input type="email" name="email" placeholder="أدخل البريد الإلكتروني" required>
+              </div>
+              <div class="input-group">
+                  <label>كلمة المرور</label>
+                  <input type="password" name="password" placeholder="أدخل كلمة المرور" required>
+              </div>
+              <button type="submit"><i class="fa-solid fa-check"></i> إنشاء الحساب</button>
           </form>
-          <p><a href="/">دخول</a></p>
+          <p>لديك حساب بالفعل؟ <a href="/">تسجيل الدخول</a></p>
       </div>
     </body>
     </html>
@@ -252,12 +288,15 @@ def profile(profile_uid):
         if doc.exists:
             user_data = doc.to_dict()
             email = user_data.get("email", "غير متوفر")
+            username = user_data.get("username", "غير متوفر")  # إضافة اسم المستخدم
             avatar = user_data.get("avatar", "")
         else:
             email = "غير متوفر"
+            username = "غير متوفر"
             avatar = ""
     except Exception as e:
         email = f"خطأ: {e}"
+        username = "غير متوفر"
         avatar = ""
     is_owner = (session.get('user') == profile_uid)
     html = """
@@ -376,6 +415,7 @@ def profile(profile_uid):
           {% else %}
             <div class="profile-pic"><i class="fa-solid fa-user"></i></div>
           {% endif %}
+          <p><strong>اسم المستخدم:</strong> {{ username }}</p>
           <p><strong>المعرف:</strong> {{ profile_uid }}</p>
           <p><strong>البريد الإلكتروني:</strong> {{ email }}</p>
           {% if is_owner %}
@@ -398,7 +438,7 @@ def profile(profile_uid):
     </body>
     </html>
     """
-    return render_template_string(html, profile_uid=profile_uid, email=email, avatar=avatar, is_owner=is_owner)
+    return render_template_string(html, profile_uid=profile_uid, email=email, username=username, avatar=avatar, is_owner=is_owner)
 
 
 
@@ -450,10 +490,13 @@ def home():
         if doc.exists:
             user_data = doc.to_dict()
             current_email = user_data.get("email", "غير متوفر")
+            current_username = user_data.get("username", "غير متوفر")  # إضافة اسم المستخدم
         else:
             current_email = "غير متوفر"
+            current_username = "غير متوفر"
     except Exception as e:
         current_email = f"خطأ: {e}"
+        current_username = "غير متوفر"
     profiles_html = ""
     try:
         users = db.collection("users").stream()
@@ -474,12 +517,12 @@ def home():
             email = u_data.get("email", "بدون اسم")
             letter = email[0].upper() if email else "U"
             user_cards_html += f'''
-            <div class="user-card" style="border: 1px solid #00d1b2; border-radius: 10px; padding: 10px; margin-bottom: 10px; text-align: center;">
+            <div class="user-card" style="border: 1px solid #003366; border-radius: 10px; padding: 10px; margin-bottom: 10px; text-align: center;">
               <div style="font-size: 2em; margin-bottom: 5px;">{letter}</div>
               <div style="font-size: 0.9em; margin-bottom: 5px;">{email}</div>
               <div>
-                <a href="mailto:{email}" title="إرسال بريد إلكتروني" style="color:#00d1b2; margin-right: 5px;"><i class="fa-solid fa-envelope"></i></a>
-                <a href="/computer/{u_uid}" title="دخول الكمبيوتر الخاص بالمستخدم" style="color:#00d1b2;"><i class="fa-solid fa-desktop"></i></a>
+                <a href="mailto:{email}" title="إرسال بريد إلكتروني" style="color:#66B2FF; margin-right: 5px;"><i class="fa-solid fa-envelope"></i></a>
+                <a href="/computer/{u_uid}" title="دخول الكمبيوتر الخاص بالمستخدم" style="color:#66B2FF;"><i class="fa-solid fa-desktop"></i></a>
               </div>
             </div>
             '''
@@ -498,28 +541,28 @@ def home():
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
           font-family: 'Poppins', sans-serif;
-          background: #141e30;
+          background: linear-gradient(135deg, #003366, #66B2FF);  /* تدرج من الأزرق الداكن إلى الأزرق الفاتح */
           color: #f0f0f0;
           overflow: hidden;
         }
         .container { display: flex; height: 100vh; }
         .sidebar {
           width: 80px;
-          background: #1e1e1e;
+          background: #003366;  /* أزرق داكن */
           padding: 20px 5px;
           display: flex;
           flex-direction: column;
           align-items: center;
-          border-right: 1px solid #333;
+          border-right: 1px solid #003366;  /* أزرق داكن */
         }
         .sidebar a {
-          color: #00d1b2;
+          color: #66B2FF;  /* أزرق فاتح */
           text-decoration: none;
           margin: 15px 0;
           font-size: 1.8em;
           transition: color 0.3s;
         }
-        .sidebar a:hover { color: #f39c12; }
+        .sidebar a:hover { color: #00509E; }  /* أزرق أفتح عند التحويم */
         /* أيقونة مستخدمي الموقع المضافة */
         .sidebar a.user-icon {
           font-size: 1.8em;
@@ -546,12 +589,12 @@ def home():
           align-items: center;
         }
         .bottom-icons a {
-          color: #00d1b2;
+          color: #66B2FF;  /* أزرق فاتح */
           text-decoration: none;
           font-size: 1.8em;
           transition: color 0.3s;
         }
-        .bottom-icons a:hover { color: #f39c12; }
+        .bottom-icons a:hover { color: #00509E; }  /* أزرق أفتح عند التحويم */
         .content { flex: 1; padding: 20px; overflow-y: auto; position: relative; }
         .section { display: none; animation: fadeIn 0.5s ease-in-out; }
         .section.active { display: block; }
@@ -562,21 +605,21 @@ def home():
         .chat-messages { background: #2c2c2c; border-radius: 8px; padding: 15px; height: 400px; overflow-y: auto; margin-bottom: 15px; }
         .chat-input-container { display: flex; gap: 10px; }
         .chat-input-container input { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #2c2c2c; color: #f0f0f0; font-size: 1em; }
-        .chat-input-container button.send-btn { padding: 12px 20px; background: #00d1b2; border: none; border-radius: 8px; color: #fff; font-size: 1em; cursor: pointer; transition: background 0.3s; }
-        .chat-input-container button.send-btn:hover { background: #f39c12; }
+        .chat-input-container button.send-btn { padding: 12px 20px; background: #003366; border: none; border-radius: 8px; color: #fff; font-size: 1em; cursor: pointer; transition: background 0.3s; }
+        .chat-input-container button.send-btn:hover { background: #00509E; }  /* أزرق أفتح عند التحويم */
         .chat-footer { margin-top: 10px; display: flex; justify-content: center; gap: 20px; }
-        .chat-footer button { background: transparent; border: none; font-size: 1.5em; cursor: pointer; color: #00d1b2; transition: color 0.3s; }
-        .chat-footer button:hover { color: #f39c12; }
+        .chat-footer button { background: transparent; border: none; font-size: 1.5em; cursor: pointer; color: #66B2FF; transition: color 0.3s; }
+        .chat-footer button:hover { color: #00509E; }  /* أزرق أفتح عند التحويم */
         #emoji-picker { display: none; position: absolute; bottom: 80px; left: 20px; background: #333; border-radius: 5px; padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000; }
         #emoji-picker .emoji { font-size: 1.2em; margin: 5px; cursor: pointer; transition: transform 0.2s; }
         #emoji-picker .emoji:hover { transform: scale(1.2); }
         .profiles-container { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 15px; justify-content: center; }
-        .profile-avatar { width: 50px; height: 50px; background: #00d1b2; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2em; font-weight: bold; color: #fff; transition: transform 0.3s; }
+        .profile-avatar { width: 50px; height: 50px; background: #003366; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2em; font-weight: bold; color: #fff; transition: transform 0.3s; }
         .profile-avatar:hover { transform: scale(1.1); }
         .feed-post { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(10px); animation: slideDown 0.6s ease-out; position: relative; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         .post-header { display: flex; align-items: center; margin-bottom: 10px; }
-        .post-avatar { width: 40px; height: 40px; background: #00d1b2; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; font-weight: bold; margin-right: 10px; }
+        .post-avatar { width: 40px; height: 40px; background: #003366; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; font-weight: bold; margin-right: 10px; }
         .post-info { display: flex; flex-direction: column; }
         .post-user { font-size: 1em; font-weight: 500; }
         .post-content { margin-bottom: 10px; }
@@ -591,8 +634,8 @@ def home():
         .reply-author { font-size: 1em; color: #00d1b2; font-weight: bold; }
         .comment-input { display: flex; margin-top: 5px; }
         .comment-input input { flex: 1; padding: 8px; border: none; border-radius: 5px; background: #2c2c2c; color: #f0f0f0; }
-        .comment-input button { padding: 8px 12px; margin-left: 5px; background: #00d1b2; border: none; border-radius: 5px; color: #fff; cursor: pointer; transition: background 0.3s; }
-        .comment-input button:hover { background: #f39c12; }
+        .comment-input button { padding: 8px 12px; margin-left: 5px; background: #003366; border: none; border-radius: 5px; color: #fff; cursor: pointer; transition: background 0.3s; }
+        .comment-input button:hover { background: #00509E; }  /* أزرق أفتح عند التحويم */
         .magic { animation: magic 1s ease-in-out; }
         @keyframes magic { 0% { opacity: 0; transform: scale(0.5) rotate(0deg); } 50% { opacity: 0.5; transform: scale(1.1) rotate(10deg); } 100% { opacity: 1; transform: scale(1) rotate(0deg); } }
         .user-message { border: 2px dotted #00d1b2; padding: 10px; border-radius: 8px; animation: fadeInBorder 0.5s ease-out; margin-bottom: 10px; }
@@ -601,7 +644,7 @@ def home():
         .trash-section { padding: 10px; }
         .trash-section h2 { text-align: center; margin-bottom: 15px; }
         .mac-container {
-          background: linear-gradient(135deg, #0A2E1F, #1A472F);  /* Changed to dark green */
+          background: linear-gradient(135deg, #003366, #66B2FF);  /* تدرج من الأزرق الداكن إلى الأزرق الفاتح */
           height: calc(100vh - 40px);
           position: relative;
           border-radius: 10px;
@@ -1067,13 +1110,14 @@ def home():
           <!-- قسم الملف الشخصي -->
           <div id="profile" class="section">
             <h1 style="text-align:center;"><i class="fa-solid fa-user"></i></h1>
-            <div class="profile">
-              <p><strong>المعرف:</strong> {{ uid }}</p>
-              <p><strong>البريد الإلكتروني:</strong> {{ email }}</p>
+            <div class="profile" style="text-align: center; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 20px auto; max-width: 500px;">
+                <p><strong>اسم المستخدم:</strong> {{ username }}</p>
+                <p><strong>المعرف:</strong> {{ uid }}</p>
+                <p><strong>البريد الإلكتروني:</strong> {{ email }}</p>
             </div>
             <div class="user-feed">
-              <h2 style="text-align:center;">منشوراتي</h2>
-              <div id="user-feed-container"></div>
+                <h2 style="text-align:center;">منشوراتي</h2>
+                <div id="user-feed-container"></div>
             </div>
           </div>
           <!-- قسم الفيديوهات -->
@@ -1081,8 +1125,8 @@ def home():
             <h1 style="text-align:center;"><i class="fa-solid fa-video"></i></h1>
             <div class="video-share-box" style="margin: 20px auto; max-width: 600px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
               <input type="text" id="video-link" placeholder="أدخل رابط فيديو يوتيوب الذي ترغب في مشاركته" style="flex: 1; padding: 10px; border-radius: 5px; border: none; min-width: 250px;"/>
-              <button type="button" onclick="shareVideo()" style="padding: 10px 20px; background: #00d1b2; border: none; border-radius: 5px; color: #fff; cursor: pointer;">مشاركة</button>
-              <button type="button" onclick="showFolderModal()" style="padding: 10px 20px; background: #ff6f61; border: none; border-radius: 5px; color: #fff; cursor: pointer;">إنشاء مجلد</button>
+              <button type="button" onclick="shareVideo()" style="padding: 10px 20px; background: #003366; border: none; border-radius: 5px; color: #fff; cursor: pointer;">مشاركة</button>
+              <button type="button" onclick="showFolderModal()" style="padding: 10px 20px; background: #800020; border: none; border-radius: 5px; color: #fff; cursor: pointer;">إنشاء مجلد</button>
             </div>
             <!-- حاوية لعرض المجلدات بجوار بعضها -->
             <div id="folder-container" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
@@ -1873,7 +1917,7 @@ def home():
     </body>
     </html>
     """
-    return render_template_string(html, uid=current_uid, email=current_email, profiles=profiles_html, user_cards=user_cards_html)
+    return render_template_string(html, uid=current_uid, email=current_email, username=current_username, profiles=profiles_html, user_cards=user_cards_html)
 
 
 
@@ -2095,7 +2139,6 @@ def save_video():
         return jsonify(success=True)
     except Exception as e:
         return jsonify(success=False, error=str(e))
-    
     
     
     
