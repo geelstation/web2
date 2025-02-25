@@ -491,12 +491,15 @@ def home():
             user_data = doc.to_dict()
             current_email = user_data.get("email", "غير متوفر")
             current_username = user_data.get("username", "غير متوفر")  # إضافة اسم المستخدم
+            current_avatar = user_data.get("avatar", "")
         else:
             current_email = "غير متوفر"
             current_username = "غير متوفر"
+            current_avatar = ""
     except Exception as e:
         current_email = f"خطأ: {e}"
         current_username = "غير متوفر"
+        current_avatar = ""
     profiles_html = ""
     try:
         users = db.collection("users").stream()
@@ -1306,6 +1309,8 @@ def home():
         var currentUserEmail = "{{ email }}";
         var currentUserId = "{{ uid }}";
         var currentUserInitial = currentUserEmail.charAt(0).toUpperCase();
+        var currentUserAvatar = "{{ avatar }}";
+        var currentUsername = "{{ username }}";
         var clonedPosts = {};
         var trashItems = {}; // لتخزين المنشورات المنقولة إلى سلة المهملات
         var privateChatMode = false;
@@ -1404,20 +1409,42 @@ def home():
           feedPost.dataset.user = currentUserEmail;
           var postId = 'post-' + Date.now();
           feedPost.id = postId;
+
+          // تحديث رأس المنشور ليشمل صورة المستخدم واسمه
           var postHeader = document.createElement('div');
           postHeader.className = 'post-header';
-          var avatar = document.createElement('div');
-          avatar.className = 'post-avatar';
-          avatar.textContent = userInitial;
-          postHeader.appendChild(avatar);
+          
+          // إضافة صورة المستخدم
+          var avatarContainer = document.createElement('div');
+          avatarContainer.className = 'post-avatar-container';
+          if (currentUserAvatar && currentUserAvatar !== "") {
+              var avatarImg = document.createElement('img');
+              avatarImg.src = currentUserAvatar;
+              avatarImg.className = 'post-avatar-img';
+              avatarContainer.appendChild(avatarImg);
+          } else {
+              var defaultAvatar = document.createElement('div');
+              defaultAvatar.className = 'post-avatar';
+              defaultAvatar.textContent = userInitial;
+              avatarContainer.appendChild(defaultAvatar);
+          }
+          postHeader.appendChild(avatarContainer);
+
+          // إضافة معلومات المستخدم
           var postInfo = document.createElement('div');
           postInfo.className = 'post-info';
           var userNameSpan = document.createElement('span');
           userNameSpan.className = 'post-user';
-          userNameSpan.textContent = currentUserEmail;
+          userNameSpan.textContent = currentUsername; // استخدام اسم المستخدم بدلاً من البريد الإلكتروني
+          var timeSpan = document.createElement('span');
+          timeSpan.className = 'post-time';
+          timeSpan.textContent = new Date().toLocaleTimeString('ar-SA');
           postInfo.appendChild(userNameSpan);
+          postInfo.appendChild(timeSpan);
           postHeader.appendChild(postInfo);
+
           feedPost.appendChild(postHeader);
+
           var postContent = document.createElement('div');
           postContent.className = 'post-content';
           var postParagraph = document.createElement('p');
@@ -1945,7 +1972,7 @@ def home():
     </body>
     </html>
     """
-    return render_template_string(html, uid=current_uid, email=current_email, username=current_username, profiles=profiles_html, user_cards=user_cards_html)
+    return render_template_string(html, uid=current_uid, email=current_email, username=current_username, avatar=current_avatar, profiles=profiles_html, user_cards=user_cards_html)
 
 
 
@@ -2355,12 +2382,6 @@ def users_page():
     return render_template_string(html, user_cards=user_cards_html)
   
   
-  
-  
-  
-  
-  
-  
 
 # =====================================================================
 # صفحة دخول الكمبيوتر الخاص بالمستخدم
@@ -2387,12 +2408,15 @@ def section_page(section):
             user_data = doc.to_dict()
             current_email = user_data.get("email", "غير متوفر")
             current_username = user_data.get("username", "غير متوفر")
+            current_avatar = user_data.get("avatar", "")
         else:
             current_email = "غير متوفر"
             current_username = "غير متوفر"
+            current_avatar = ""
     except Exception as e:
         current_email = f"خطأ: {e}"
         current_username = "غير متوفر"
+        current_avatar = "غير متوفر"
 
     # تحديث الHTML ليشمل القسم النشط المحدد
     html = """
@@ -2476,7 +2500,8 @@ def section_page(section):
     </html>
     """
     return render_template_string(html, uid=current_uid, email=current_email, 
-                                username=current_username, section=section)
+                                username=current_username, avatar=current_avatar,
+                                section=section)
 
 if __name__ == '__main__':
     app.run(debug=True)
