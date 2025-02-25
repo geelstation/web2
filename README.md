@@ -1027,20 +1027,20 @@ def home():
     <body>
       <div class="container">
         <div class="sidebar">
-          <a href="#" title="الشات" onclick="showSection('chat')">
+          <a href="/home/chat" title="الشات" onclick="showSection('chat', event)">
             <i class="fa-solid fa-comment-dots"></i>
           </a>
-          <a href="#" title="الفيد" onclick="showSection('feed')">
+          <a href="/home/feed" title="الفيد" onclick="showSection('feed', event)">
             <i class="fa-solid fa-newspaper"></i>
           </a>
-          <a href="#" title="البروفايل" onclick="showSection('profile')">
+          <a href="/home/profile" title="البروفايل" onclick="showSection('profile', event)">
             <i class="fa-solid fa-user"></i>
           </a>
           <!-- أيقونة الفيديوهات المضافة -->
-          <a href="#" title="الفيديوهات" onclick="showSection('videos')">
+          <a href="/home/videos" title="الفيديوهات" onclick="showSection('videos', event)">
             <i class="fa-solid fa-video"></i>
           </a>
-          <a href="#" class="computer-icon" title="الكمبيوتر" onclick="showSection('computer')">
+          <a href="/home/computer" class="computer-icon" title="الكمبيوتر" onclick="showSection('computer', event)">
             <i class="fa-solid fa-desktop"></i>
           </a>
           <!-- أيقونة مستخدمي الموقع -->
@@ -1048,7 +1048,7 @@ def home():
             <i class="fa-solid fa-users"></i>
           </a>
           <div class="bottom-icons">
-            <a href="#" class="trash-icon" title="سلة المهملات" onclick="showSection('trash')">
+            <a href="/home/trash" class="trash-icon" title="سلة المهملات" onclick="showSection('trash', event)">
               <i class="fa-solid fa-trash"></i>
             </a>
             <a href="#" class="close-icon" title="إغلاق" onclick="window.location.href='/logout'">
@@ -1325,14 +1325,42 @@ def home():
             folderSelect.appendChild(opt);
           });
         }
-        // دالة لتبديل عرض الأقسام
-        function showSection(sectionId) {
+        // دالة للتبديل بين الأقسام وتحديث الرابط في المتصفح
+        function showSection(sectionId, event) {
+          if (event) {
+            event.preventDefault();
+          }
+          
+          // إخفاء جميع الأقسام
           var sections = document.getElementsByClassName('section');
           for (var i = 0; i < sections.length; i++) {
             sections[i].classList.remove('active');
           }
-          document.getElementById(sectionId).classList.add('active');
+          
+          // إظهار القسم المحدد
+          var selectedSection = document.getElementById(sectionId);
+          if (selectedSection) {
+            selectedSection.classList.add('active');
+          }
+          
+          // تحديث الرابط في المتصفح
+          var newUrl = '/home/' + sectionId;
+          history.pushState({section: sectionId}, '', newUrl);
         }
+
+        // التأكد من إظهار القسم الصحيح عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', function() {
+          var currentSection = '{{ section }}';
+          showSection(currentSection);
+        });
+
+        // التعامل مع أزرار التنقل في المتصفح
+        window.addEventListener('popstate', function(event) {
+          if (event.state && event.state.section) {
+            showSection(event.state.section);
+          }
+        });
+
         // دالة للتوجه إلى صفحة المجلد عند النقر على رأسه
         function goToFolder(folderName) {
           window.location.href = '/folder/' + encodeURIComponent(folderName);
@@ -2343,6 +2371,112 @@ def users_page():
 def logout():
     session.pop('user', None)
     return redirect(url_for('welcome'))
+
+
+# إضافة مسارات جديدة لكل قسم
+@app.route('/home/<section>')
+def section_page(section):
+    if 'user' not in session:
+        return redirect(url_for('welcome'))
+    current_uid = session['user']
+    try:
+        user = auth.get_user(current_uid)
+        doc_ref = db.collection("users").document(current_uid)
+        doc = doc_ref.get()
+        if doc.exists:
+            user_data = doc.to_dict()
+            current_email = user_data.get("email", "غير متوفر")
+            current_username = user_data.get("username", "غير متوفر")
+        else:
+            current_email = "غير متوفر"
+            current_username = "غير متوفر"
+    except Exception as e:
+        current_email = f"خطأ: {e}"
+        current_username = "غير متوفر"
+
+    # تحديث الHTML ليشمل القسم النشط المحدد
+    html = """
+    <!DOCTYPE html>
+    <html lang="ar">
+    <head>
+        <!-- ...existing head content... -->
+    </head>
+    <body>
+        <div class="container">
+            <div class="sidebar">
+                <a href="/home/chat" title="الشات" onclick="showSection('chat', event)">
+                    <i class="fa-solid fa-comment-dots"></i>
+                </a>
+                <a href="/home/feed" title="الفيد" onclick="showSection('feed', event)">
+                    <i class="fa-solid fa-newspaper"></i>
+                </a>
+                <a href="/home/profile" title="البروفايل" onclick="showSection('profile', event)">
+                    <i class="fa-solid fa-user"></i>
+                </a>
+                <a href="/home/videos" title="الفيديوهات" onclick="showSection('videos', event)">
+                    <i class="fa-solid fa-video"></i>
+                </a>
+                <a href="/home/computer" class="computer-icon" title="الكمبيوتر" onclick="showSection('computer', event)">
+                    <i class="fa-solid fa-desktop"></i>
+                </a>
+                <a href="/users" class="user-icon" title="مستخدمو الموقع">
+                    <i class="fa-solid fa-users"></i>
+                </a>
+                <div class="bottom-icons">
+                    <a href="/home/trash" class="trash-icon" title="سلة المهملات" onclick="showSection('trash', event)">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
+                    <a href="/logout" class="close-icon" title="إغلاق">
+                        <i class="fa-solid fa-xmark"></i>
+                    </a>
+                </div>
+            </div>
+            <!-- ...existing content... -->
+        </div>
+        <script>
+            // تحديث دالة showSection
+            function showSection(sectionId, event) {
+                if (event) {
+                    event.preventDefault();
+                }
+                
+                // إخفاء جميع الأقسام
+                var sections = document.getElementsByClassName('section');
+                for (var i = 0; i < sections.length; i++) {
+                    sections[i].classList.remove('active');
+                }
+                
+                // إظهار القسم المحدد
+                var selectedSection = document.getElementById(sectionId);
+                if (selectedSection) {
+                    selectedSection.classList.add('active');
+                }
+                
+                // تحديث الرابط في المتصفح
+                var newUrl = '/home/' + sectionId;
+                history.pushState({section: sectionId}, '', newUrl);
+            }
+
+            // التأكد من إظهار القسم الصحيح عند تحميل الصفحة
+            document.addEventListener('DOMContentLoaded', function() {
+                var currentSection = '{{ section }}';
+                showSection(currentSection);
+            });
+
+            // التعامل مع أزرار التنقل في المتصفح
+            window.addEventListener('popstate', function(event) {
+                if (event.state && event.state.section) {
+                    showSection(event.state.section);
+                }
+            });
+
+            // ...existing JavaScript code...
+        </script>
+    </body>
+    </html>
+    """
+    return render_template_string(html, uid=current_uid, email=current_email, 
+                                username=current_username, section=section)
 
 if __name__ == '__main__':
     app.run(debug=True)
